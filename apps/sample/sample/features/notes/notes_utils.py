@@ -1,6 +1,6 @@
 from collections.abc import AsyncIterator
 from enum import StrEnum
-from typing import Any, Generic, TypeVar
+from typing import Any, TypeVar
 
 from pydantic import BaseModel, Field, model_serializer
 
@@ -14,12 +14,12 @@ class Pagination(BaseModel):
     page_size: int
 
 
-class PaginatedResponse(BaseModel, Generic[T]):
+class PaginatedResponse[T: BaseModel](BaseModel):
     pagination: Pagination
     data: list[T]
 
 
-class SuccessResponse(BaseModel, Generic[T]):
+class SuccessResponse[T: BaseModel](BaseModel):
     success: bool = True
     data: T | list[T] | None = None
     pagination: Pagination | None = None
@@ -43,7 +43,9 @@ class FormatParam(BaseModel):
     format: OutputFormat = Field(OutputFormat.json, description="Output format")
 
 
-async def generate_response(output_format: OutputFormat, iterator: AsyncIterator[T]) -> tuple[AsyncIterator[str], str]:
+async def generate_response[T: BaseModel](
+    output_format: OutputFormat, iterator: AsyncIterator[T]
+) -> tuple[AsyncIterator[str], str]:
     if output_format == OutputFormat.jsonl:
 
         async def jsonl_generator(iterator: AsyncIterator[T]) -> AsyncIterator[str]:
