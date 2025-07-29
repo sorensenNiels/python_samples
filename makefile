@@ -1,5 +1,4 @@
 export PYTHON_VERSION=3.13.3
-export LOCAL_REPO = dockerrepo.softdesign.dk:5000
 
 # Install python dependencies
 install:
@@ -62,20 +61,3 @@ mongo:
 	-@docker start local-mongo	
 
 
-# JENKINS BUILD, TEST AND DEPLOY - DO NOT TOUCH
-# ----------------------------------------------
-jenkins-build: 
-	@./devops/docker_scripts.sh build ${APPLICATION}
-
-jenkins-test: 
-	@./devops/docker_scripts.sh test ${APPLICATION}
-
-jenkins-build-prod: 
-	@./devops/docker_scripts.sh build-prod ${APPLICATION}
-
-jenkins-repo-push:
-	@./devops/docker_scripts.sh repo-push ${APPLICATION}
-
-jenkins-run:
-	@./devops/docker_scripts.sh run ${APPLICATION}
-# --

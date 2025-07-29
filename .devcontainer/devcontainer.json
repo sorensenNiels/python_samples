@@ -7,7 +7,7 @@
   "features": {
     "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {},
     "ghcr.io/jungaretti/features/make:1": {},
-    "ghcr.io/devcontainers-contrib/features/mypy:2": {}
+    "ghcr.io/devcontainers-extra/features/mypy:2": {}
   },
   "customizations": {
     "vscode": {
