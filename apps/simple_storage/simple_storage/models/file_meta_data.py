@@ -2,13 +2,14 @@ from datetime import datetime
 from typing import ClassVar
 
 from beanie import Document, PydanticObjectId
+from bson import ObjectId
 
 
 class FileMetadata(Document):
     bucket_name: str
     filename: str
     last_modified: datetime
-    gridfs_id: PydanticObjectId
+    gridfs_id: PydanticObjectId | ObjectId
     file_hash: str | None = None
     content_type: str
     file_size: int | None = None

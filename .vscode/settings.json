@@ -40,5 +40,6 @@
   "mypy-type-checker.interpreter": [
     "${workspaceFolder}/.venv/bin/python"
   ],
-  "makefile.configureOnOpen": false
+  "makefile.configureOnOpen": false,
+  "python.analysis.typeCheckingMode": "basic"
 }

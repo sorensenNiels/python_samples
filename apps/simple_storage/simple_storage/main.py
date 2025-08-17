@@ -1,13 +1,17 @@
 import hashlib
 from contextlib import asynccontextmanager
 from io import BytesIO
-from typing import Annotated
+from typing import (
+    Annotated,
+    cast,  # Import 'cast'
+)
 
 import jwt
 from beanie import init_beanie
 from fastapi import Depends, FastAPI, File, Form, Header, HTTPException, Response, UploadFile
 from fastapi.responses import StreamingResponse
-from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorDatabase, AsyncIOMotorGridFSBucket
+from motor.motor_asyncio import AsyncIOMotorDatabase, AsyncIOMotorGridFSBucket
+from pymongo import AsyncMongoClient
 from simple_storage.constants import DATABASE_NAME
 from simple_storage.dtos.bucket_delete_body_dto import BucketDeleteBody
 from simple_storage.dtos.file_delete_body_dto import FilesDeleteBody
@@ -25,14 +29,26 @@ from starlette import status
 async def lifespan(app: FastAPI):
     logger.info("Lifecycle started")
 
-    client: AsyncIOMotorClient = AsyncIOMotorClient(MONGO_URI)
-    db: AsyncIOMotorDatabase = client[DATABASE_NAME]
-    await init_beanie(database=db, document_models=[FileMetadata])
+    # Initialize the AsyncMongoClient
+    client: AsyncMongoClient = AsyncMongoClient(MONGO_URI)
+
+    # Cast the database object to the expected AsyncIOMotorDatabase type
+    db: AsyncIOMotorDatabase = cast(AsyncIOMotorDatabase, client[DATABASE_NAME])  # This is the corrected line.
+
+    # Initialize Beanie with the correctly typed database
+    await init_beanie(database=db, document_models=[FileMetadata])  # type: ignore
+
+    # Initialize GridFS with the correctly typed database
     gridfs = AsyncIOMotorGridFSBucket(db)
 
     app.state.gridfs = gridfs
 
     yield
+
+    # On shutdown, close the client connection
+    logger.info("Closing MongoDB connection")
+    await client.close()
+    logger.info("MongoDB connection closed")
 
 
 app = FastAPI(lifespan=lifespan)
@@ -137,7 +153,7 @@ async def upload_file(
             last_modified=current_utc_timestamp(),
             gridfs_id=gridfs_id,
             file_hash=file_hash.hexdigest(),
-            content_type=file.content_type,
+            content_type=file.content_type or "",
             file_size=file.size,
         ).insert()
 
@@ -191,8 +207,8 @@ async def download_object(body: FilesDownloadBody, tenant_id: Annotated[str, Dep
             generate_chunks(),
             media_type=file_metadata.content_type,
             headers={
-                "Content-Disposition": f"attachment; filename={filename}",
-                "ETag": file_metadata.file_hash,
+                "Content-Disposition": f"attachment; filename={filename or ''}",
+                "ETag": file_metadata.file_hash or "",
                 "Content-Length": str(gridfs_file.length),
             },
         )
@@ -248,4 +264,4 @@ async def delete_bucket(body: BucketDeleteBody, tenant_id: Annotated[str, Depend
 @app.post("/buckets/list")
 async def list_buckets(tenant_id: Annotated[str, Depends(get_tenant_id)]):
     logger.info("Listing buckets")
-    return await FileMetadata.distinct("bucket_name", FileMetadata.tenant_id == tenant_id)
+    return await FileMetadata.distinct("bucket_name", {"tenant_id": tenant_id})
