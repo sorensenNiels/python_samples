@@ -28,8 +28,7 @@
         "humao.rest-client",
         "GitHub.copilot",
         "ms-toolsai.vscode-jupyter-powertoys",
-        "ms-vscode.makefile-tools",
-        "Azurite.azurite"
+        "ms-vscode.makefile-tools"
       ]
     }
   }

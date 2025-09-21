@@ -17,8 +17,8 @@ simple_worker = { workspace = true }
 [tool.uv.workspace]
 members = ["packages/*", "apps/*"]
 
-[tool.uv]
-dev-dependencies = [
+[dependency-groups]
+dev = [
     "pre-commit>=3.8.0",
     "ipykernel>=6.29.5",
     "pytest>=8.3.4",
@@ -37,4 +37,3 @@ dev-dependencies = [
     "simple_storage",
     "simple_worker",
 ]
-package = false
